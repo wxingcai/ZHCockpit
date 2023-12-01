@@ -8,11 +8,13 @@
 import UIKit
 import WebKit
 import Alamofire
+import Photos
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     var bgmView: UIImageView!
     var webView: WKWebView!
+    var myBtn: UIButton!
     var statusHeight: CGFloat = 0
     
     
@@ -43,6 +45,14 @@ class ViewController: UIViewController {
         bgmView.backgroundColor = .gray
         view.addSubview(bgmView)
         
+        myBtn = UIButton(type: .system)
+        myBtn.backgroundColor = .lightGray
+        myBtn.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        myBtn.setTitleColor(.green, for: .normal)
+        myBtn.setTitle("获取图片", for: .normal)
+        myBtn.addTarget(self, action: #selector(myBtnClick(sender:)), for: .touchUpInside)
+        view.addSubview(myBtn)
+        
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenOrientationChange(noti:)), name: UIDevice.orientationDidChangeNotification, object: nil)
         
@@ -51,6 +61,37 @@ class ViewController: UIViewController {
         
         self.getRotationChartRequst(userCode: "1010000000072")
         // Do any additional setup after loading the view.
+    }
+    
+    @objc func myBtnClick(sender: UIButton) {
+        let authStatus = PHPhotoLibrary.authorizationStatus()
+        if authStatus == .notDetermined {
+            PHPhotoLibrary.requestAuthorization { status in
+                if status == .authorized {
+                    self.openPhotoLibrary()
+                }
+            }
+        } else if authStatus == .authorized {
+            self.openPhotoLibrary()
+        }
+    }
+    
+    func openPhotoLibrary() {
+        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+            let imagePicker = UIImagePickerController()
+            imagePicker.delegate = self
+            imagePicker.sourceType = .photoLibrary
+            imagePicker.allowsEditing = false
+            imagePicker.modalPresentationStyle = .fullScreen
+            self.present(imagePicker, animated: true, completion: nil)
+        }
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let originImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+            self.bgmView.image = originImage
+        }
+        picker.dismiss(animated: true, completion: nil)
     }
     
     func getRotationChartRequst(userCode:String) {
@@ -120,7 +161,11 @@ class ViewController: UIViewController {
             make?.left.equalTo()(self.view.mas_left)
             make?.right.equalTo()(self.view.mas_right)
         }
-        
+        myBtn.mas_updateConstraints { (make) in
+            make?.top.equalTo()(self.view.mas_top)?.setOffset(statusHeight + 30)
+            make?.left.equalTo()(self.view.mas_left)?.setOffset(40)
+            make?.size.mas_equalTo()(CGSize(width: 100, height: 30))
+        }
     }
     
     override func viewDidLayoutSubviews() {
