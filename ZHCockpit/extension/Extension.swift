@@ -9,15 +9,13 @@ import UIKit
 
 extension UIDevice {
     
-    public func safeAreaBottom() -> CGFloat {
+    class func safeAreaBottom() -> CGFloat {
         var bottom:CGFloat = 0
-        if #available(iOS 11.0, *) {
-            bottom = UIApplication.shared.windows[0].safeAreaInsets.bottom
-        }
+        bottom = UIApplication.shared.windows[0].safeAreaInsets.bottom
         return bottom
     }
     
-    public func safeAreaTop() -> CGFloat {
+    class func safeAreaTop() -> CGFloat {
         var top: CGFloat = 0
         let keyWindow = UIApplication.shared.windows.first
         if keyWindow != nil {

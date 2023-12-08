@@ -7,5 +7,5 @@
 
 import Foundation
 
-let statusBarHeight = UIDevice.current.safeAreaTop()
+let statusBarHeight = UIDevice.safeAreaTop()
 

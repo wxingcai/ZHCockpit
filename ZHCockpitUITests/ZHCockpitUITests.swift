@@ -2,12 +2,12 @@
 //  ZHCockpitUITests.swift
 //  ZHCockpitUITests
 //
-//  Created by apple on 2023/11/28.
+//  Created by wangxc on 2023/12/8.
 //
 
 import XCTest
 
-class ZHCockpitUITests: XCTestCase {
+final class ZHCockpitUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -27,7 +27,6 @@ class ZHCockpitUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // Use recording to get started writing UI tests.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
 

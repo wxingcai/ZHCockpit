@@ -30,7 +30,7 @@ import Foundation
 
 // Enforce minimum Swift version for all platforms and build systems.
 #if swift(<5.5)
-//#error("Alamofire doesn't support Swift versions below 5.5.")
+#error("Alamofire doesn't support Swift versions below 5.5.")
 #endif
 
 /// Reference to `Session.default` for quick bootstrapping and examples.

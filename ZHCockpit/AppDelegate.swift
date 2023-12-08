@@ -1,15 +1,15 @@
 //
 //  AppDelegate.swift
-//  ScreenShield
+//  ZHCockpit
 //
-//  Created by apple on 2023/11/21.
+//  Created by wangxc on 2023/12/8.
 //
 
 import UIKit
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
+    
     var shouldRotate = false
     var window: UIWindow?
 

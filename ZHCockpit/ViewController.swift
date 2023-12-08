@@ -1,8 +1,8 @@
 //
 //  ViewController.swift
-//  ScreenShield
+//  ZHCockpit
 //
-//  Created by apple on 2023/11/20.
+//  Created by wangxc on 2023/12/8.
 //
 
 import UIKit
@@ -78,12 +78,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func openPhotoLibrary() {
         if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = .photoLibrary
-            imagePicker.allowsEditing = false
-            imagePicker.modalPresentationStyle = .fullScreen
-            self.present(imagePicker, animated: true, completion: nil)
+            DispatchQueue.main.async(execute: {
+                let imagePicker = UIImagePickerController()
+                imagePicker.delegate = self
+                imagePicker.sourceType = .photoLibrary
+                imagePicker.allowsEditing = false
+                imagePicker.modalPresentationStyle = .fullScreen
+                self.present(imagePicker, animated: true, completion: nil)
+            })
         }
     }
     
@@ -294,4 +296,3 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return _canvasImg
     }
 }
-
