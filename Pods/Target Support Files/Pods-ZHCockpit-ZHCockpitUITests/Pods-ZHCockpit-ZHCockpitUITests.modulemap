@@ -1,6 +1,0 @@
-framework module Pods_ZHCockpit_ZHCockpitUITests {
-  umbrella header "Pods-ZHCockpit-ZHCockpitUITests-umbrella.h"
-
-  export *
-  module * { export * }
-}

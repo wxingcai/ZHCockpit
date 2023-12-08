@@ -2,7 +2,7 @@
 //  File.swift
 //  ScreenShield
 //
-//  Created by apple on 2023/11/24.
+//  Created by wangxc on 2023/11/24.
 //
 
 import Foundation
