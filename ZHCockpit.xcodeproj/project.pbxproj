@@ -14,8 +14,10 @@
 		1825E4F12B15E97800A8BF29 /* ZHCockpitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1825E4F02B15E97800A8BF29 /* ZHCockpitTests.swift */; };
 		1825E4FC2B15E97800A8BF29 /* ZHCockpitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1825E4FB2B15E97800A8BF29 /* ZHCockpitUITests.swift */; };
 		1825E50C2B15EA9000A8BF29 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1825E50B2B15EA9000A8BF29 /* File.swift */; };
+		186E2B6F2B3ADF7800490053 /* AFNetworkReachabilityManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 186E2B6D2B3ADF7800490053 /* AFNetworkReachabilityManager.m */; };
 		18B8A4DF2B171808006D0D07 /* ScreenShieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B8A4DE2B171808006D0D07 /* ScreenShieldView.swift */; };
 		18B8A4E32B1721D6006D0D07 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B8A4E22B1721D6006D0D07 /* Extension.swift */; };
+		18F833162B57BE5600874F78 /* YaHei.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 18F833152B57BE5600874F78 /* YaHei.ttf */; };
 		808DBEA42798FCE58DEAF386 /* Pods_ZHCockpit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C693D7A66E02C7DC1C76DA5 /* Pods_ZHCockpit.framework */; };
 /* End PBXBuildFile section */
 
@@ -52,8 +54,11 @@
 		1825E4FD2B15E97800A8BF29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1825E50B2B15EA9000A8BF29 /* File.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		1825E50D2B15EAAA00A8BF29 /* ZHCockpit-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ZHCockpit-Bridging-Header.h"; sourceTree = "<group>"; };
+		186E2B6D2B3ADF7800490053 /* AFNetworkReachabilityManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkReachabilityManager.m; sourceTree = "<group>"; };
+		186E2B6E2B3ADF7800490053 /* AFNetworkReachabilityManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkReachabilityManager.h; sourceTree = "<group>"; };
 		18B8A4DE2B171808006D0D07 /* ScreenShieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenShieldView.swift; sourceTree = "<group>"; };
 		18B8A4E22B1721D6006D0D07 /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
+		18F833152B57BE5600874F78 /* YaHei.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = YaHei.ttf; sourceTree = "<group>"; };
 		6A4464560008F810D97C8789 /* Pods-ZHCockpit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZHCockpit.release.xcconfig"; path = "Target Support Files/Pods-ZHCockpit/Pods-ZHCockpit.release.xcconfig"; sourceTree = "<group>"; };
 		898678276478BF2F96B1702C /* Pods-ZHCockpit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZHCockpit.debug.xcconfig"; path = "Target Support Files/Pods-ZHCockpit/Pods-ZHCockpit.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -111,9 +116,12 @@
 			children = (
 				1825E4D92B15E97300A8BF29 /* AppDelegate.swift */,
 				1825E4DD2B15E97300A8BF29 /* ViewController.swift */,
+				186E2B6E2B3ADF7800490053 /* AFNetworkReachabilityManager.h */,
+				186E2B6D2B3ADF7800490053 /* AFNetworkReachabilityManager.m */,
 				18B8A4E12B1721B3006D0D07 /* extension */,
 				18B8A4DD2B1717EC006D0D07 /* safeView */,
 				1825E50B2B15EA9000A8BF29 /* File.swift */,
+				18F833152B57BE5600874F78 /* YaHei.ttf */,
 				1825E4E22B15E97700A8BF29 /* Assets.xcassets */,
 				1825E4E42B15E97700A8BF29 /* LaunchScreen.storyboard */,
 				1825E4E72B15E97700A8BF29 /* Info.plist */,
@@ -280,6 +288,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1825E4E62B15E97700A8BF29 /* LaunchScreen.storyboard in Resources */,
+				18F833162B57BE5600874F78 /* YaHei.ttf in Resources */,
 				1825E4E32B15E97700A8BF29 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -351,6 +360,7 @@
 				18B8A4DF2B171808006D0D07 /* ScreenShieldView.swift in Sources */,
 				1825E50C2B15EA9000A8BF29 /* File.swift in Sources */,
 				1825E4DE2B15E97300A8BF29 /* ViewController.swift in Sources */,
+				186E2B6F2B3ADF7800490053 /* AFNetworkReachabilityManager.m in Sources */,
 				1825E4DA2B15E97300A8BF29 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -521,17 +531,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 8G8AN2HUUD;
+				DEVELOPMENT_TEAM = 9HZ934524V;
 				INFOPLIST_FILE = ZHCockpit/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.nfeuapp.test;
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bobcardif.gljscapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "nfeuApp2023-test";
+				PROVISIONING_PROFILE_SPECIFIER = gljscapp_profile2024;
 				SWIFT_OBJC_BRIDGING_HEADER = "ZHCockpit/ZHCockpit-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -546,16 +557,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9HZ934524V;
 				INFOPLIST_FILE = ZHCockpit/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cockpit.cn;
+				MARKETING_VERSION = 1.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bobcardif.gljscapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = gljscapp_profile2024;
 				SWIFT_OBJC_BRIDGING_HEADER = "ZHCockpit/ZHCockpit-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

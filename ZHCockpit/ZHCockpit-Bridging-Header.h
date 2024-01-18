@@ -3,15 +3,16 @@
 //
 
 @import Masonry;
+#import "AFNetworkReachabilityManager.h"
 
-//#define PROD /**--生产环境--*/
+#if 1 // 开发环境
 
-#ifdef PROD
+#define App_MainUrl "https://ckpttest.bob-cardif.com:10880/"
 
-#define H5_App_MainUrl "https://www.baidu.com"
+#else // 生产环境
 
-#else
-
-#define H5_App_MainUrl "https://www.baidu.com"
+#define App_MainUrl "https://gljsc.bob-cardif.com:10880/"
 
 #endif
+
+#define DownloadUrl "api/user/download"

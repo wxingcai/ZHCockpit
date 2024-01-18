@@ -61,5 +61,23 @@ extension UIColor {
         _ = Scanner(string: gString).scanHexInt64(&g)
         _ = Scanner(string: bString).scanHexInt64(&b)
         return UIColor.colorWithRgbAlpha(CGFloat(r), CGFloat(g), CGFloat(b), alpha: alpha)
-    }        
+    }
+}
+
+extension UIImage {
+    class func createImage(rect: CGRect, color: UIColor) -> UIImage {
+        
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
+        color.setFill()
+        UIRectFill(rect)
+        
+        guard let image = UIGraphicsGetImageFromCurrentImageContext() else {
+            // 如果无法获取图片上下文则返回空白图片
+            return UIImage.init()
+        }
+        
+        UIGraphicsEndImageContext()
+        
+        return image
+    }
 }

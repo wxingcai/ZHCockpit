@@ -8,50 +8,54 @@
 import UIKit
 import WebKit
 import Alamofire
-import Photos
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDelegate {
     
     var bgmView: UIImageView!
     var webView: WKWebView!
-    var myBtn: UIButton!
     var statusHeight: CGFloat = 0
-    
+    var currentUrl = ""
+    var topTile = ""
+    var naviBackColor = ""
+    var hidenNaviBar = true
+    var naviBarView: UIView!
+    var titleLbl: UILabel!
+    var backBtn: UIButton!
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
         UIDevice.current.endGeneratingDeviceOrientationNotifications()
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "getAppInfo")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "openPage")
+        deleteWebCache()
+    }
+    
+    func deleteWebCache() {
+        //清除web缓存信息
+        let websiteDataTypes = Set(arrayLiteral: WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache)
+        let dateFrom = Date.init(timeIntervalSince1970: 0)
+        WKWebsiteDataStore.default().removeData(ofTypes: websiteDataTypes, modifiedSince: dateFrom, completionHandler: {})
     }
     
     override func loadView() {
         super.loadView()
-        view = ScreenShieldView.create(frame: UIScreen.main.bounds)
+//        view = ScreenShieldView.create(frame: UIScreen.main.bounds)
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        self.navigationController?.isNavigationBarHidden = true
         
-        webView = WKWebView.init()
-        if let h5Url = URL(string: H5_App_MainUrl) {
-            webView.load(URLRequest(url: h5Url))
+        if !hidenNaviBar {
+            self.loadNaviBarView(topTitle: topTile, backColor: UIColor.hexStringToColor(hex: naviBackColor, alpha: 1))
         }
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-        view.addSubview(webView)
-        webView.allowsBackForwardNavigationGestures = true
+        self.loadWKWebView()
         
         bgmView = UIImageView()
         bgmView.alpha = 0.4
         bgmView.backgroundColor = .gray
         view.addSubview(bgmView)
-        
-        myBtn = UIButton(type: .system)
-        myBtn.backgroundColor = .lightGray
-        myBtn.titleLabel?.font = UIFont.systemFont(ofSize: 18)
-        myBtn.setTitleColor(.green, for: .normal)
-        myBtn.setTitle("获取图片", for: .normal)
-        myBtn.addTarget(self, action: #selector(myBtnClick(sender:)), for: .touchUpInside)
-        view.addSubview(myBtn)
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenOrientationChange(noti:)), name: UIDevice.orientationDidChangeNotification, object: nil)
@@ -59,54 +63,178 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let delegate = UIApplication.shared.delegate as! AppDelegate
         delegate.shouldRotate = true
         
-        self.getRotationChartRequst(userCode: "1010000000072")
-        // Do any additional setup after loading the view.
-    }
-    
-    @objc func myBtnClick(sender: UIButton) {
-        let authStatus = PHPhotoLibrary.authorizationStatus()
-        if authStatus == .notDetermined {
-            PHPhotoLibrary.requestAuthorization { status in
-                if status == .authorized {
-                    self.openPhotoLibrary()
+        if !isGetLatestVersion {
+            self.requestLatestVersion()
+            isGetLatestVersion = true
+        }
+        statusHeight = statusBarHeight
+        if !hidenNaviBar {
+            statusHeight = statusBarHeight + 44
+        }
+        self.updateConstraints()
+        
+        let userDefaults = UserDefaults.standard
+        let firstInstall = userDefaults.object(forKey: "firstInstall")
+        if firstInstall == nil {
+            let netManager = AFNetworkReachabilityManager.shared()
+            netManager.setReachabilityStatusChange { status in
+                if (status == .reachableViaWWAN || status == .reachableViaWiFi) {
+                    if let h5Url = URL(string: self.currentUrl) {
+                        self.webView.load(URLRequest(url: h5Url))
+                    }
+                    userDefaults.setValue("installed", forKey: "firstInstall")
+                    userDefaults.synchronize()
+                    netManager.stopMonitoring()
                 }
             }
-        } else if authStatus == .authorized {
-            self.openPhotoLibrary()
+            netManager.startMonitoring()
         }
     }
     
-    func openPhotoLibrary() {
-        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = .photoLibrary
-            imagePicker.allowsEditing = false
-            imagePicker.modalPresentationStyle = .fullScreen
-            self.present(imagePicker, animated: true, completion: nil)
+    func loadWKWebView() {
+        let config = WKWebViewConfiguration()
+        let userContentController = WKUserContentController()
+        config.userContentController = userContentController;
+        
+        // 禁止网页本身自带的长按
+        let noneSelectScript1 = WKUserScript.init(source: "document.documentElement.style.webkitUserSelect='none';", injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        let noneSelectScript2 = WKUserScript.init(source: "document.documentElement.style.webkitUserSelect='none';", injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        userContentController.addUserScript(noneSelectScript1)
+        userContentController.addUserScript(noneSelectScript2)
+        webView = WKWebView.init(frame: .zero, configuration: config)
+        
+        if currentUrl == "" {
+            currentUrl = App_MainUrl
+        }
+        if let h5Url = URL(string: currentUrl) {
+            webView.load(URLRequest(url: h5Url))
+        }
+        
+        webView.navigationDelegate = self
+        //webView.scrollView.bounces = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        view.addSubview(webView)
+
+        webView.configuration.userContentController.add(self, name: "getAppInfo")
+        webView.configuration.userContentController.add(self, name: "openPage")
+        
+        let familyNames = UIFont.familyNames
+        for familyName in familyNames {
+            print("Family: \n", familyName)
+            let fontNames = UIFont.fontNames(forFamilyName: familyName)
+            for fontName in fontNames {
+                print("\tFont: \n", fontName)
+            }
+        }
+        
+    }
+        
+    func loadNaviBarView(topTitle: String, backColor: UIColor) {
+        naviBarView = UIView.init()
+        naviBarView.backgroundColor = backColor
+        view.addSubview(naviBarView)
+        
+        backBtn = UIButton(type: .custom)
+        backBtn.setImage(UIImage(named: "back"), for: .normal)
+        backBtn.addTarget(self, action: #selector(goback), for: .touchUpInside)
+        naviBarView.addSubview(backBtn)
+        
+        titleLbl = UILabel.init()
+        titleLbl.textColor = .white
+        titleLbl.font = UIFont.boldSystemFont(ofSize: 18)
+        titleLbl.textAlignment = .center
+        titleLbl.text = topTile
+        naviBarView.addSubview(titleLbl)
+    }
+    
+    @objc func goback() {
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if let tempUrl = navigationAction.request.url?.absoluteString {
+            print("currentUrl ====  ", tempUrl)
+        }
+        decisionHandler(.allow)
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        print(message.name)
+        if message.name == "getAppInfo" {
+            //获取本地版本号
+            let infoDictionary = Bundle.main.infoDictionary
+            let appVersion = infoDictionary!["CFBundleShortVersionString"] as! String
+            //获取手机UUID
+            let identifierNumber = UIDevice.current.identifierForVendor?.uuidString
+            print("APP_UUID : \(identifierNumber ?? "")")
+            
+            let appInfos = NSMutableDictionary.init()
+            appInfos.setValue("V\(appVersion)", forKey: "versioncode")
+            
+            let jsonString = getJSONStringFromDictionary(from: appInfos) ?? ""
+            let callBackString = "postvesioncode(\(jsonString))"
+            
+            webView.evaluateJavaScript(callBackString) { result, error in
+                print(result as Any)
+                print(error as Any)
+            }
+        } else if message.name == "openPage"{
+            print(message.body as Any)
+            if let messageStr = message.body as? String {
+                let messageDic = self.getDictionaryFromJSONString(jsonString: messageStr)
+                let nextVC = ViewController()
+                nextVC.hidenNaviBar = false
+                nextVC.currentUrl = "\(messageDic["URL"] ?? "")"
+                nextVC.topTile = "\(messageDic["name"] ?? "")"
+                nextVC.naviBackColor = "\(messageDic["color"] ?? "")"
+                self.navigationController?.pushViewController(nextVC, animated: true)
+            }
         }
     }
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        if let originImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-            self.bgmView.image = originImage
+    func getJSONStringFromDictionary(from object: Any) -> String? {
+        if let objectData = try? JSONSerialization.data(withJSONObject: object, options: JSONSerialization.WritingOptions(rawValue: 0)) {
+            let objectString = String(data: objectData, encoding: .utf8)
+            return objectString
         }
-        picker.dismiss(animated: true, completion: nil)
+        return ""
     }
     
-    func getRotationChartRequst(userCode:String) {
-        let urlString = "https://www.baidu.com/"
-        AF.request(urlString, method: .post, parameters: [:], encoding: JSONEncoding.default, requestModifier: { $0.timeoutInterval = 60 }).validate(contentType: ["application/json", "text/html"]).response(completionHandler: { response in
+    func requestLatestVersion() {
+        let urlString = App_MainUrl + DownloadUrl
+        //获取本地版本号
+        let infoDictionary = Bundle.main.infoDictionary
+        let appVersion = infoDictionary!["CFBundleShortVersionString"] as! String
+        AF.request(urlString, method: .post, parameters: ["packageVersion":appVersion, "packageType":"2"], encoding: JSONEncoding.default, requestModifier: { $0.timeoutInterval = 60 }).validate(contentType: ["application/json", "text/html"]).response(completionHandler: { response in
             switch response.result {
             case .success(response.data):
                 let result = String(data: response.data ?? Data.init(), encoding: .utf8) ?? ""
                 let resultDic = self.getDictionaryFromJSONString(jsonString: result)
                 print(resultDic)
+                let dataDic = resultDic["data"] as? NSDictionary ?? NSDictionary()
+                let isUpdate = dataDic["isUpdate"] as? Bool ?? false
+                let downloadUrl = "\(dataDic["packageDownloadUrl"] ?? "")"
+                if isUpdate {
+                    self.updateApp(downloadUrl: "itms-services://?action=download-manifest&url=" + downloadUrl)
+                }
             default:
                 let error = response.error
                 print(error.debugDescription)
             }
         })
+    }
+    
+    func updateApp(downloadUrl: String) {
+        let alertCtrol = UIAlertController(title: "发现新版本，是否更新？", message: nil, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "确定", style: .default) { action in
+            if let url = URL(string: downloadUrl) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+        let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: nil)
+        alertCtrol.addAction(okAction)
+        alertCtrol.addAction(cancelAction)
+        present(alertCtrol, animated: true, completion: nil)
     }
     
     // JSONString转换为字典
@@ -121,25 +249,27 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     @objc func handleScreenOrientationChange(noti: NSNotification) {
         let orient = UIDevice.current.orientation;
-        let appModel = UIDevice.current.model
         
         switch (orient) {
         case .portrait:
             print("竖直屏幕");
             statusHeight = statusBarHeight
+            if !hidenNaviBar {
+                statusHeight = statusBarHeight + 44
+            }
             self.updateConstraints()
         case .landscapeLeft:
             print("手机左转");
             statusHeight = 0
-            if appModel == "iPad" {
-                statusHeight = statusBarHeight
+            if !hidenNaviBar {
+                statusHeight = 44
             }
             self.updateConstraints()
         case .landscapeRight:
             print("手机右转");
             statusHeight = 0
-            if appModel == "iPad" {
-                statusHeight = statusBarHeight
+            if !hidenNaviBar {
+                statusHeight = 44
             }
             self.updateConstraints()
         default:
@@ -149,6 +279,28 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func updateConstraints() {
+        if naviBarView != nil {
+            naviBarView.mas_updateConstraints { (make) in
+                make?.top.equalTo()(self.view.mas_top)
+                make?.left.equalTo()(self.view.mas_left)
+                make?.right.equalTo()(self.view.mas_right)
+                make?.height.equalTo()(statusHeight)
+            }
+            
+            titleLbl.mas_updateConstraints { make in
+                make?.bottom.equalTo()(naviBarView.mas_bottom)?.setOffset(-7)
+                make?.left.equalTo()(naviBarView.mas_left)?.setOffset(44)
+                make?.right.equalTo()(naviBarView.mas_right)?.setOffset(-44)
+                make?.height.equalTo()(30)
+            }
+            
+            backBtn.mas_updateConstraints { make in
+                make?.bottom.equalTo()(naviBarView.mas_bottom)
+                make?.left.equalTo()(naviBarView.mas_left)
+                make?.width.equalTo()(64)
+                make?.height.equalTo()(44)
+            }
+        }
         webView.mas_updateConstraints { (make) in
             make?.top.equalTo()(self.view.mas_top)?.setOffset(statusHeight)
             make?.bottom.equalTo()(self.view.mas_bottom)
@@ -160,11 +312,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             make?.bottom.equalTo()(self.view.mas_bottom)
             make?.left.equalTo()(self.view.mas_left)
             make?.right.equalTo()(self.view.mas_right)
-        }
-        myBtn.mas_updateConstraints { (make) in
-            make?.top.equalTo()(self.view.mas_top)?.setOffset(statusHeight + 30)
-            make?.left.equalTo()(self.view.mas_left)?.setOffset(40)
-            make?.size.mas_equalTo()(CGSize(width: 100, height: 30))
         }
     }
     
@@ -194,7 +341,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         var _attr:[NSAttributedString.Key:Any] = [
             .font : UIFont.systemFont(ofSize: 15, weight: .semibold),
-            .foregroundColor:UIColor.hexStringToColor(hex: "#000000", alpha: 0.4),
+            .foregroundColor:UIColor.hexStringToColor(hex: "#000000", alpha: 0.1),
             .paragraphStyle: paragraphStyle,
             .kern:1.0,
         ]

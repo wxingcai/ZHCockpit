@@ -8,4 +8,5 @@
 import Foundation
 
 let statusBarHeight = UIDevice.current.safeAreaTop()
+var isGetLatestVersion = false
 
