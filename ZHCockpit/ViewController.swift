@@ -48,14 +48,9 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
         self.navigationController?.isNavigationBarHidden = true
         
         if !hidenNaviBar {
-            self.loadNaviBarView(topTitle: topTile, backColor: UIColor.hexStringToColor(hex: naviBackColor, alpha: 1))
+            self.loadNaviBarView()
         }
         self.loadWKWebView()
-        
-        bgmView = UIImageView()
-        bgmView.alpha = 0.4
-        bgmView.backgroundColor = .gray
-        view.addSubview(bgmView)
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
         NotificationCenter.default.addObserver(self, selector: #selector(handleScreenOrientationChange(noti:)), name: UIDevice.orientationDidChangeNotification, object: nil)
@@ -114,6 +109,11 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
         //webView.scrollView.bounces = false
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         view.addSubview(webView)
+        
+        bgmView = UIImageView()
+        bgmView.alpha = 0.4
+        bgmView.backgroundColor = .gray
+        view.addSubview(bgmView)
 
         webView.configuration.userContentController.add(self, name: "getAppInfo")
         webView.configuration.userContentController.add(self, name: "openPage")
@@ -129,19 +129,20 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
         
     }
         
-    func loadNaviBarView(topTitle: String, backColor: UIColor) {
+    func loadNaviBarView() {
         naviBarView = UIView.init()
-        naviBarView.backgroundColor = backColor
+        naviBarView.backgroundColor = UIColor.hexStringToColor(hex: naviBackColor, alpha: 1)
         view.addSubview(naviBarView)
         
         backBtn = UIButton(type: .custom)
+        backBtn.tintColor = .white
         backBtn.setImage(UIImage(named: "back"), for: .normal)
         backBtn.addTarget(self, action: #selector(goback), for: .touchUpInside)
         naviBarView.addSubview(backBtn)
         
         titleLbl = UILabel.init()
         titleLbl.textColor = .white
-        titleLbl.font = UIFont.boldSystemFont(ofSize: 18)
+        titleLbl.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         titleLbl.textAlignment = .center
         titleLbl.text = topTile
         naviBarView.addSubview(titleLbl)
