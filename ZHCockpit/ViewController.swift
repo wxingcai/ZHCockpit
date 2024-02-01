@@ -16,18 +16,26 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
     var statusHeight: CGFloat = 0
     var currentUrl = ""
     var topTile = ""
-    var naviBackColor = ""
+    var naviBarFlag = ""
     var hidenNaviBar = true
     var naviBarView: UIView!
     var titleLbl: UILabel!
     var backBtn: UIButton!
+    var topBack: CAGradientLayer!
+    var watermarkWord = ""
     
     deinit {
-        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
-        UIDevice.current.endGeneratingDeviceOrientationNotifications()
+        deleteWebCache()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        webView.configuration.userContentController.add(self, name: "getAppInfo")
+        webView.configuration.userContentController.add(self, name: "openPage")
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "getAppInfo")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "openPage")
-        deleteWebCache()
     }
     
     func deleteWebCache() {
@@ -39,7 +47,7 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
     
     override func loadView() {
         super.loadView()
-//        view = ScreenShieldView.create(frame: UIScreen.main.bounds)
+        view = ScreenShieldView.create(frame: UIScreen.main.bounds)
     }
     
     override func viewDidLoad() {
@@ -52,17 +60,11 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
         }
         self.loadWKWebView()
         
-        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-        NotificationCenter.default.addObserver(self, selector: #selector(handleScreenOrientationChange(noti:)), name: UIDevice.orientationDidChangeNotification, object: nil)
-        
-        let delegate = UIApplication.shared.delegate as! AppDelegate
-        delegate.shouldRotate = true
-        
         if !isGetLatestVersion {
             self.requestLatestVersion()
             isGetLatestVersion = true
         }
-        statusHeight = statusBarHeight
+        statusHeight = 0
         if !hidenNaviBar {
             statusHeight = statusBarHeight + 44
         }
@@ -94,8 +96,11 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
         // 禁止网页本身自带的长按
         let noneSelectScript1 = WKUserScript.init(source: "document.documentElement.style.webkitUserSelect='none';", injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         let noneSelectScript2 = WKUserScript.init(source: "document.documentElement.style.webkitUserSelect='none';", injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        //let noneSelectScriptStr = "var metaScript = document.createElement('meta'); metaScript.name = 'viewport'; metaScript.content=\"width=device-width, initial-scale=1.0,maximum-scale=1.0, minimum-scale=1.0, user- scalable=no\"; document.head.appendChild(metaScript);"
+        //let noneSelectScript3 = WKUserScript.init(source: noneSelectScriptStr,injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         userContentController.addUserScript(noneSelectScript1)
         userContentController.addUserScript(noneSelectScript2)
+        //userContentController.addUserScript(noneSelectScript3)
         webView = WKWebView.init(frame: .zero, configuration: config)
         
         if currentUrl == "" {
@@ -107,42 +112,30 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
         
         webView.navigationDelegate = self
         //webView.scrollView.bounces = false
+        webView.scrollView.decelerationRate = .fast
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         view.addSubview(webView)
         
         bgmView = UIImageView()
-        bgmView.alpha = 0.4
+        bgmView.alpha = 0.3
         bgmView.backgroundColor = .gray
+        bgmView.isHidden = true
         view.addSubview(bgmView)
-
-        webView.configuration.userContentController.add(self, name: "getAppInfo")
-        webView.configuration.userContentController.add(self, name: "openPage")
-        
-        let familyNames = UIFont.familyNames
-        for familyName in familyNames {
-            print("Family: \n", familyName)
-            let fontNames = UIFont.fontNames(forFamilyName: familyName)
-            for fontName in fontNames {
-                print("\tFont: \n", fontName)
-            }
-        }
-        
     }
         
     func loadNaviBarView() {
         naviBarView = UIView.init()
-        naviBarView.backgroundColor = UIColor.hexStringToColor(hex: naviBackColor, alpha: 1)
+        naviBarView.backgroundColor = UIColor.white
         view.addSubview(naviBarView)
         
         backBtn = UIButton(type: .custom)
-        backBtn.tintColor = .white
-        backBtn.setImage(UIImage(named: "back"), for: .normal)
+        backBtn.setImage(UIImage(named: "back2"), for: .normal)
         backBtn.addTarget(self, action: #selector(goback), for: .touchUpInside)
         naviBarView.addSubview(backBtn)
         
         titleLbl = UILabel.init()
-        titleLbl.textColor = .white
-        titleLbl.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        titleLbl.textColor = UIColor.hexStringToColor(hex: "#333333", alpha: 1)
+        titleLbl.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         titleLbl.textAlignment = .center
         titleLbl.text = topTile
         naviBarView.addSubview(titleLbl)
@@ -162,6 +155,13 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         print(message.name)
         if message.name == "getAppInfo" {
+            if let messageStr = message.body as? String {
+                let messageDic = self.getDictionaryFromJSONString(jsonString: messageStr)
+                watermarkWord = "\(messageDic["username"] ?? "")"
+                let _img = createWatermarkFor(Text: watermarkWord, andFullSize:CGSize(width: view.bounds.width, height: view.bounds.height))
+                bgmView.backgroundColor = UIColor(patternImage: _img)
+                bgmView.isHidden = false
+            }
             //获取本地版本号
             let infoDictionary = Bundle.main.infoDictionary
             let appVersion = infoDictionary!["CFBundleShortVersionString"] as! String
@@ -187,7 +187,8 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
                 nextVC.hidenNaviBar = false
                 nextVC.currentUrl = "\(messageDic["URL"] ?? "")"
                 nextVC.topTile = "\(messageDic["name"] ?? "")"
-                nextVC.naviBackColor = "\(messageDic["color"] ?? "")"
+                nextVC.naviBarFlag = "\(messageDic["theme"] ?? "")"
+                nextVC.watermarkWord = self.watermarkWord
                 self.navigationController?.pushViewController(nextVC, animated: true)
             }
         }
@@ -309,7 +310,7 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
             make?.right.equalTo()(self.view.mas_right)
         }
         bgmView.mas_updateConstraints { (make) in
-            make?.top.equalTo()(self.view.mas_top)?.setOffset(statusHeight)
+            make?.top.equalTo()(self.view.mas_top)
             make?.bottom.equalTo()(self.view.mas_bottom)
             make?.left.equalTo()(self.view.mas_left)
             make?.right.equalTo()(self.view.mas_right)
@@ -318,8 +319,44 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let _img = createWatermarkFor(Text:"    水印文本1、水印文本2", andFullSize:CGSize(width: view.bounds.width, height: view.bounds.height))
-        bgmView.backgroundColor = UIColor(patternImage: _img)
+        if watermarkWord != "" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                let _img = self.createWatermarkFor(Text: self.watermarkWord, andFullSize:CGSize(width: self.view.bounds.width, height: self.view.bounds.height))
+                self.bgmView.backgroundColor = UIColor(patternImage: _img)
+                self.bgmView.isHidden = false
+            }
+        } else {
+            bgmView.isHidden = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if self.topBack != nil {
+                self.topBack.removeFromSuperlayer()
+                self.topBack = nil
+            }
+            if !self.hidenNaviBar {
+                let naviBarBackColors = ["0":"#66CCFF", "1":"#FF9AA6", "2":"#73CC87"]
+                if naviBarBackColors.keys.contains(self.naviBarFlag) {
+                    self.topBack = self.setGradualTopToBottomColor(view: self.naviBarView, fromColor: UIColor.hexStringToColor(hex: naviBarBackColors[self.naviBarFlag] ?? "", alpha: 1), toCololr: UIColor.hexStringToColor(hex: "#FFFFFF", alpha: 1))
+                }
+                if self.topBack != nil {
+                    self.naviBarView.layer.insertSublayer(self.topBack, at: 0)
+                }
+            }
+        }
+    }
+    
+    //上下渐变
+    func setGradualTopToBottomColor(view:UIView,fromColor:UIColor,toCololr:UIColor,loactions:[NSNumber]=[0,1]) -> CAGradientLayer {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = view.bounds
+        //  创建渐变色数组，需要转换为CGColor颜色
+        gradientLayer.colors = [fromColor.cgColor,toCololr.cgColor]
+        //  设置渐变颜色方向，左上点为(0,0), 右下点为(1,1)
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint =  CGPoint(x: 0, y: 1)
+        //  设置颜色变化点，取值范围 0.0~1.0
+        gradientLayer.locations = loactions
+        return gradientLayer
     }
     
     /// 创建全铺图片水印

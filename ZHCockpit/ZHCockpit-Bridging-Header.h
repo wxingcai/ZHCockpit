@@ -5,13 +5,13 @@
 @import Masonry;
 #import "AFNetworkReachabilityManager.h"
 
-#if 1 // 开发环境
+#if 0 // 开发环境
 
 #define App_MainUrl "https://ckpttest.bob-cardif.com:10880/"
 
 #else // 生产环境
 
-#define App_MainUrl "https://gljsc.bob-cardif.com:10880/"
+#define App_MainUrl "https://gljsc.bob-cardif.com/"
 
 #endif
 

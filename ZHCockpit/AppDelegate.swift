@@ -22,14 +22,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window?.rootViewController = NavigationController.init(rootViewController: ViewController())
         return true
     }
-
-    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        if shouldRotate {
-            return .all
-        } else {
-            return .portrait
-        }
-    }
 }
 
 class NavigationController: UINavigationController, UIGestureRecognizerDelegate {
